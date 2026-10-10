@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四階段實作與心得 — ZQ 專題成果</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="./index.html">AI Agent 安全專題（代號：ZQ）</a>
+    <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="./index.html">首頁總覽</a></li>
+      <li><a href="./research.html">研究動機與攻擊面</a></li>
+      <li><a href="./experiments.html">AI vs. AI 攻防框架</a></li>
+      <li class="has-subs">
+        <a class="active" href="./reflection.html">四階段實作與心得</a>
+        <span class="subs">(<a href="#phase1-4">四階段實作</a><a href="#skills">專業收穫</a><a href="#reflection">心得反思</a><a href="#suggestion">建議</a>)</span>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container page-top">
+
+  <!-- 1. 專題實作四大階段 -->
+  <section class="section" id="phase1-4">
+    <div class="section-head from-bottom">
+      <h3>1. 專題實作四大階段 (Phase 1 ~ Phase 4)</h3>
+    </div>
+
+    <div class="card-grid from-bottom">
+      <div class="card">
+        <h4>Phase 1：攻擊資料生成 (Offensive Generation)</h4>
+        <p><strong>目標：</strong>建立 MD-based Indirect Prompt Injection Fuzzer。<br>
+        1. 設計 Prompt Injection Seed 並建立標準種子庫。<br>
+        2. 規劃語意與排版 Mutation 策略。<br>
+        3. 利用 Attacker AI 自動產生大量對抗性 <code>.md</code> 文件。</p>
+      </div>
+
+      <div class="card">
+        <h4>Phase 2：Agent Attack Testing</h4>
+        <p><strong>目標：</strong>測試 AI Agent 是否受文件中的 Injection 影響。<br>
+        1. 建立嚴格隔離的 Sandbox 與 Mock Tools。<br>
+        2. 讓 Target Agent 讀取變異文件並執行任務。<br>
+        3. 觀測並記錄 Agent 是否偏離原始 Task、是否調用未授權工具。</p>
+      </div>
+
+      <div class="card">
+        <h4>Phase 3：建立 Attack Dataset</h4>
+        <p><strong>目標：</strong>彙整實驗數據建立標準安全數據集。<br>
+        記錄每次測試的 Seed、Mutation 類型、Agent 輸入輸出、Tool Call 與任務偏離情況，計算各類變異下的初始 ASR。</p>
+      </div>
+
+      <div class="card highlight">
+        <h4>Phase 4：AI Defense (Defensive Evaluation)</h4>
+        <p><strong>目標：</strong>建立 Prompt Injection 偵測與防禦系統。<br>
+        利用 Dataset 進行特徵工程與風險評分，設計 Defender AI 前置審查機制；最後由 Attacker AI 再次發動全量攻擊，實證防禦後 ASR 顯著下降！</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 專業技能收穫 -->
+  <section class="section" id="skills">
+    <div class="section-head from-bottom">
+      <h3>2. 專業技能與工程能力提升</h3>
+    </div>
+
+    <div class="skill-grid">
+      <div class="skill-card tech from-bottom">
+        <h4>AI Agent 系統與自動化 Fuzzing</h4>
+        <p>掌握智慧代理人架構（OpenClaw/Agentic Workflow），學會設計結合 LLM 的自動化語意模糊測試流程。</p>
+      </div>
+      <div class="skill-card tech from-bottom">
+        <h4>提示工程與對抗性樣本生成</h4>
+        <p>深刻理解直接與間接提示注入的攻防特徵，實作 10 大類語意混淆、角色偽冒與結構包裝的變異運算子。</p>
+      </div>
+      <div class="skill-card tech from-bottom">
+        <h4>安全防禦與數據集評估</h4>
+        <p>構建標準化的 Attack Dataset 與雙階段 Oracle 評判邏輯，掌握以 ASR 為核心的科學量化驗證方法。</p>
+      </div>
+      <div class="skill-card tech from-bottom">
+        <h4>科研沙盒與倫理邊界規範</h4>
+        <p>落實「去武器化」科研原則，全程採用 Mock 工具與隔離環境，確保資安研究的高度嚴謹性與可重現性。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 心路歷程反思 -->
+  <section class="section split" id="reflection">
+    <div class="split-title from-left">
+      <div class="title-blob"><h3>心路歷程<br>與自我反思</h3></div>
+    </div>
+    <div class="split-body from-right">
+      <p><strong>專題的核心本質：建立完整的自動化攻防框架</strong><br>
+      專題剛起步時，我們曾思考是否只要手動寫出幾個精妙的 Prompt 攻擊成功就算達標？但在與王仁甫教授的探討中，我們深刻意識到：<strong>資安研究的價值不在於單點展示，而在於建立一套可自動化探索弱點、可量化統計、可學習防禦的完整系統體系。</strong></p>
+
+      <p><strong>體會「AI 打 AI」的前沿魅力：</strong><br>
+      透過讓 Attacker AI 擔任紅隊探索邊界，讓 Defender AI 擔任藍隊學習審查特徵，最後比對 ASR 下降幅度，這套閉環架構讓我們親身體會到下一代 AI 安全工程的精髓。從一開始對 Agent 行為不可控的迷茫，到逐步設計出客觀評判的 Oracle，每一步都是工程邏輯的躍升。</p>
+
+      <p><strong>研究團隊協作（ZQ）：</strong><br>
+      在整個專題期間，團隊成員分工推進種子改寫、Fuzzer 變異腳本、數據集收集與防禦模型調優，培養了極具默契的研發協作與自主解決未知問題的韌性。</p>
+    </div>
+  </section>
+
+  <!-- 4. 給系上與學弟妹的建議 -->
+  <section class="section split reverse" id="suggestion">
+    <div class="split-body from-left">
+      <p><strong>給資管系上的建議：</strong><br>
+      衷心感謝系上提供完善的專題研究資源與成果展示機會。隨著 Agentic AI 時代的來臨，建議系上未來能在課程中增加更多自主代理系統架構、API 安全與對抗性 AI 的專案實作內容，讓同學能接軌國際最前沿的技術熱點。</p>
+
+      <p><strong>給學弟妹的建議：</strong><br>
+      1. <strong>儘早動手跑實驗：</strong>概念想得再多，不如親自寫出第一版 Fuzzing 腳本跑一次 Log，真實數據會告訴你問題在哪裡。<br>
+      2. <strong>重視科研記錄與可重現性：</strong>每次測試都留下完整的日誌與元數據，這會讓你的研究成果在最後評審展現時極具說服力！<br>
+      3. <strong>享受挑戰：</strong>遇到瓶頸是探索未知的必經之路，保持好奇心與耐性，專題帶給你的收穫將遠超預期！</p>
+    </div>
+    <div class="split-title from-right">
+      <div class="title-blob alt"><h3>致謝與建議<br>給系上與學弟妹</h3></div>
+    </div>
+  </section>
+
+</main>
+
+<button class="scroll-top" aria-label="回到頂端">↑</button>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h5>關於專題研究團隊（代號：ZQ）</h5>
+      <p>林郁庭、謝雨澄 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>指導老師：王仁甫 教授</p>
+    </div>
+    <div>
+      <h5>聯絡資訊</h5>
+      <p>學校信箱：<a href="mailto:s1113104@mail.yzu.edu.tw">s1113104@mail.yzu.edu.tw</a></p>
+      <p>個人信箱：<a href="mailto:cadylinn0@gmail.com">cadylinn0@gmail.com</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 林郁庭、謝雨澄 &nbsp;|&nbsp; All Rights Reserved. 元智大學資訊管理學系專題成果報告</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
