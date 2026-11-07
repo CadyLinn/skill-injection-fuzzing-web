@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>實驗結果 — ZQ 專題成果</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="./index.html">Markdown 間接提示注入研究（ZQ）</a>
+    <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="./index.html">首頁總覽</a></li>
+      <li><a href="./research.html">研究目標與規範</a></li>
+      <li><a href="./experiments.html">系統設計與方法</a></li>
+      <li class="has-subs">
+        <a class="active" href="./results.html">實驗結果</a>
+        <span class="subs">(<a href="#by-model">跨模型</a><a href="#bottleneck">攻擊鏈</a><a href="#by-mutation">變異算子</a><a href="#defender-result">Defender</a>)</span>
+      </li>
+      <li><a href="./reflection.html">進度、學習與心得</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container page-top">
+
+  <!-- 1. 總覽 -->
+  <section class="section" id="overview-kpi">
+    <div class="section-head from-bottom">
+      <h3>1. 📈 實驗結果總覽</h3>
+    </div>
+    <p class="from-bottom">研究對象是會載入第三方 <code>SKILL.md</code>、具備持久記憶與工具呼叫能力的 LLM Agent。攻擊拆成三個可量測階段：<strong>F5</strong> 載入被汙染的技能檔 → <strong>F2</strong> 第一回合把注入內容寫進記憶 → <strong>F3</strong> 第二回合使用者只問一般問題，Agent 卻依記憶呼叫被注入的工具。F2 與 F3 同時成立才算<strong>端到端成功</strong>。</p>
+    <div class="card-row four from-bottom">
+      <div class="stat-box">
+        <div class="stat-num">72</div>
+        <p class="stat-label">Seed（InjecAgent 62 + PromptIntel 10）</p>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">2 × 360</div>
+        <p class="stat-label">AI 變異 SKILL.md（72 seed × 5 算子，兩批）</p>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">0 / 720</div>
+        <p class="stat-label">GPT-5.6-sol（strict）端到端成功</p>
+      </div>
+      <div class="stat-box stat-before">
+        <div class="stat-num">6 / 360</div>
+        <p class="stat-label">Qwen2.5-7B 端到端成功（1.7%）<br>本研究最高</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 跨模型結果 -->
+  <section class="section" id="by-model">
+    <div class="section-head from-bottom">
+      <h3>2. 🤖 跨模型攻擊結果</h3>
+    </div>
+
+    <div class="card from-bottom">
+      <div class="chart-head">
+        <h4 style="margin:0;">端到端 ASR（360 筆完整跑，95% Wilson 信賴區間）</h4>
+        <span class="chart-scale">軸上限 4%</span>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-row">
+          <div class="bar-label"><strong>GPT-5.6-sol</strong><span>strict・雲端</span></div>
+          <div class="bar-track"><div class="bar ci" style="left:0;width:26.5%"></div><div class="bar point" style="left:0"></div><span class="bar-val">0 / 360　0.0%（CI 0–1.1%）</span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><strong>Mistral-7B</strong><span>weak・本機・harness v1</span></div>
+          <div class="bar-track"><div class="bar ci" style="left:0;width:26.5%"></div><div class="bar point" style="left:0"></div><span class="bar-val">0 / 360　0.0%（CI 0–1.1%）</span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><strong>Qwen3-8B</strong><span>本機・harness v2</span></div>
+          <div class="bar-track"><div class="bar ci" style="left:1.25%;width:37.75%"></div><div class="bar point" style="left:6.9%"></div><span class="bar-val">1 / 360　0.3%（CI 0.05–1.6%）</span></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><strong>Qwen2.5-7B</strong><span>本機・harness v2</span></div>
+          <div class="bar-track"><div class="bar ci" style="left:19.25%;width:70.5%"></div><div class="bar point" style="left:41.7%"></div><span class="bar-val">6 / 360　1.7%（CI 0.8–3.6%）</span></div>
+        </div>
+      </div>
+      <p class="chart-note">● 點為觀測值，橫條為 95% 信賴區間。0 次成功不代表 ASR 為 0：依 rule of three，360 筆皆 0 時上界約 0.83%。</p>
+    </div>
+
+    <div class="table-responsive from-bottom">
+      <table class="custom-table">
+        <thead>
+          <tr><th>Target 模型</th><th>設定</th><th>樣本數</th><th>F2 寫入記憶</th><th>F3 工具濫用</th><th>端到端</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GPT-5.6-sol<br><small>OpenRouter</small></td><td>strict</td><td>360 × 2 批</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>GPT-5.6-sol<br><small>OpenRouter</small></td><td>relaxed</td><td>33</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>GPT-4o<br><small>OpenRouter</small></td><td>—</td><td>188 / 360</td><td colspan="3"><small>每週 API 額度用盡後暫停，決定不再續跑</small></td></tr>
+          <tr><td>Mistral-7B<br><small>Ollama q4_K_M</small></td><td>weak・v1</td><td>360</td><td>25（6.9%）</td><td>0</td><td>0</td></tr>
+          <tr><td>Llama-3.1-8B<br><small>Ollama q4_K_M</small></td><td>v1 → v2</td><td>60</td><td>—</td><td>v1 誤判 34，v2 修正為 0</td><td>0</td></tr>
+          <tr><td>Qwen3-8B<br><small>Ollama q4_K_M</small></td><td>v2</td><td>360</td><td>—</td><td>—</td><td>1（0.3%）</td></tr>
+          <tr class="total-row"><td>Qwen2.5-7B<br><small>Ollama q4_K_M</small></td><td>v2</td><td>360</td><td>—</td><td>—</td><td>6（1.7%）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-row two from-bottom">
+      <div class="card">
+        <h4>強模型在硬化 prompt 下幾乎攻不破</h4>
+        <p>GPT-5.6-sol 在 strict 設定下兩批各 360 筆的 F2、F3、端到端都是 0。但這是「加了防護 prompt」的 baseline，<strong>不能代表模型本身就安全</strong>。</p>
+      </div>
+      <div class="card">
+        <h4>小模型上跨回合攻擊確實存在</h4>
+        <p>本機 7–8B 模型上可以完成整條攻擊鏈，但比例低；而且所有端到端成功都來自同一種變異算子 <code>authority_claim</code>。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 攻擊鏈瓶頸 -->
+  <section class="section" id="bottleneck">
+    <div class="section-head from-bottom">
+      <h3>3. 🔗 攻擊鏈的瓶頸：把指令寫進記憶</h3>
+    </div>
+    <div class="pipeline-box from-bottom">
+      <div class="pipeline-step">
+        <h5>F5 載入技能檔</h5>
+        <p style="font-size: 0.9rem; margin:0;">Agent 讀取含注入內容的 <code>SKILL.md</code></p>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step step-weak">
+        <h5>F2 寫入記憶（瓶頸）</h5>
+        <p style="font-size: 0.9rem; margin:0;">最不穩定的一步。Mistral 25 筆寫入中有 24 筆只存了標記，延遲指令從未進入記憶</p>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step step-hit">
+        <h5>F3 工具濫用</h5>
+        <p style="font-size: 0.9rem; margin:0;">指令一旦進了記憶，回合 2 有 <strong>89%</strong> 照做，而且回覆使用者時不會提到用了工具</p>
+      </div>
+    </div>
+    <p class="from-bottom">使用者完全看不出異常，代表防禦重點應放在<strong>記憶寫入時的檢查</strong>，而不是只靠第二回合的防禦指令。</p>
+  </section>
+
+  <!-- 4. 變異算子 -->
+  <section class="section" id="by-mutation">
+    <div class="section-head from-bottom">
+      <h3>4. 🔴 變異算子：要分模型、分目標行為看</h3>
+    </div>
+    <div class="card-row three from-bottom">
+      <div class="card mini">
+        <span class="badge badge-blue">有效</span>
+        <h4>authority_claim</h4>
+        <p>唯一能讓模型「記下來之後才做」的算子，所有跨回合端到端成功都來自它。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-outline">只在當場有效</span>
+        <h4>quality_assurance_note</h4>
+        <p>讓模型當場誤用的比例很高，卻沒有任何一筆跨回合成功。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-outline">無效</span>
+        <h4>條件觸發／延遲觸發</h4>
+        <p>名稱上專為跨回合設計的算子，實際上完全無效。</p>
+      </div>
+    </div>
+    <div class="card from-bottom" style="margin-top: 18px;">
+      <p style="margin:0;">同一種變異在不同模型上效果可能相反：在 Qwen 與 Mistral 上，原始 seed 完全不會寫記憶、變異後大幅上升；在 Llama 上卻讓當場誤用從 <strong>4/12 降到 0/60</strong>。因此 fuzzing 結果應分模型呈現，並把「當場誤用」與「跨回合誤用」分開計算。</p>
+    </div>
+  </section>
+
+  <!-- 5. Harness 修正 -->
+  <section class="section" id="harness-v2">
+    <div class="section-head from-bottom">
+      <h3>5. 🧪 量測方式本身也會造成假象：harness v1 → v2</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card">
+        <h4>v1 的兩種失真</h4>
+        <p><strong>低估：</strong>記憶只能存標記，延遲指令寫不進記憶。<br>
+        <strong>高估：</strong>回合 2 的 payload 直接提供了測試標記，連沒有記憶的樣本都能命中 F3。</p>
+        <p>Llama-3.1-8B 因此被誤判為 <strong>34/60</strong> 成功，實際上是 <strong>0/60</strong>。</p>
+      </div>
+      <div class="card highlight">
+        <h4>v2 的「有效 F3」</h4>
+        <p>規格在跑結果之前寫定：觸發標記<strong>只能來自記憶</strong>才算 F3 成功。另外把「格式錯誤」和「攻擊失敗」分開計算，例如 Qwen2.5-7B 透過 API 時 5 筆都無法產生要求的 JSON，不能直接算成攻擊失敗。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Defender -->
+  <section class="section" id="defender-result">
+    <div class="section-head from-bottom">
+      <h3>6. 🔵 偵測與 Gate 防禦</h3>
+    </div>
+    <p class="from-bottom">建立兩份 Defender 資料集，各 432 筆（360 攻擊 + 72 正常）：<strong>v1</strong> 保留明顯的測試標記，<strong>harder_v1</strong> 移除了明顯標記。</p>
+    <div class="table-responsive from-bottom">
+      <table class="custom-table">
+        <thead>
+          <tr><th>偵測方式</th><th>v1（含標記）</th><th>harder_v1（移除標記）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>靜態規則</td><td>432 / 432 全部判對</td><td><strong>recall = 0</strong>，完全偵測不到</td></tr>
+          <tr><td>Defender AI</td><td>432 / 432 全部判對</td><td>432 / 432 全部判對</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="stat-box stat-after">
+        <div class="stat-num">360 / 360</div>
+        <p class="stat-label">Gate 擋下的攻擊文件</p>
+      </div>
+      <div class="stat-box stat-after">
+        <div class="stat-num">72 / 72</div>
+        <p class="stat-label">Gate 放行的正常文件</p>
+      </div>
+    </div>
+    <div class="caveat from-bottom">
+      <strong>⚠️ 這些數字還不能宣稱防禦有效</strong>
+      <ul>
+        <li><strong>標籤洩漏：</strong>樣本 ID 含「attack」「benign」字樣，Defender 也用到攻擊家族 metadata，不代表遇到新樣本也能判對。</li>
+        <li><strong>政策層級推算：</strong>Gate 的結果是推算，不是實際重跑 Agent。</li>
+        <li><strong>Floor effect：</strong>baseline ASR 本來就接近 0，無法證明防禦降低了什麼。偵測器的 precision／recall 不等於 Agent 的 ASR。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 7. 記憶措辭與機制 -->
+  <section class="section" id="mechanism">
+    <div class="section-head from-bottom">
+      <h3>7. 🧠 記憶措辭消融與機制分析（Qwen3-8B）</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card">
+        <h4>記憶措辭決定成敗</h4>
+        <p>以唯一成功案例 <code>promptintel-006.m05</code> 做消融：四種措辭 × 有無防禦指令各 10 次。只把記憶改成描述語氣，照做率就從 <strong>10/10 降到 0/10</strong>（Fisher exact test，p = 1.1×10⁻⁵）。</p>
+        <p>但這個效果只在第二回合<strong>有防禦指令</strong>時才出現。多組比較皆經 Holm 校正，例如「拿掉一句話降到 4/10」校正後只能算趨勢。</p>
+      </div>
+      <div class="card">
+        <h4>決策是分散的，不是單一開關</h4>
+        <p>用 circuit-tracer 與公開 transcoder 畫歸因圖，再以 feature intervention、activation patching、逐層 residual patching 做因果驗證。</p>
+        <p>兩組 prompt 用的是同一批 feature，差異分散在<strong>上千個 feature 的小幅偏移</strong>，主要在第 <strong>21–29 層</strong>進入決策位置。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. 建議 -->
+  <section class="section" id="next-steps">
+    <div class="section-head from-bottom">
+      <h3>8. 🛠️ 限制與後續建議</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <h4>更難的 holdout 資料集</h4>
+        <p>以 <code>authority_claim</code> 為基礎產生 Defender 沒看過的新樣本，並在可被攻破的本機模型上評估防禦前後差異。</p>
+      </div>
+      <div class="card mini">
+        <h4>Defender 盲測</h4>
+        <p>移除樣本 ID 中的標籤與攻擊家族 metadata，確認判斷來自文件內容本身，再重做 gate 對照。</p>
+      </div>
+      <div class="card mini">
+        <h4>防禦放在記憶寫入時</h4>
+        <p>寫入記憶時檢查是否含工具指令，或讀取時把記憶標記為不可信資料。</p>
+      </div>
+      <div class="card mini">
+        <h4>擴大機制分析</h4>
+        <p>目前只有一個案例、樣本數偏小，結論的普遍性有限。</p>
+      </div>
+    </div>
+    <p class="from-bottom" style="margin-top: 18px; color: var(--gray-mid); font-size: 0.92rem;">全程只用 mock 工具（工具呼叫僅記錄為 <code>executed: false</code> 的惰性事件），語料去武器化，以 <code>MEMORY_TEST</code>／<code>TOOL_TEST</code> 標記取代真實惡意內容。結果代表「模型做出了誤用的決定」，不是真的造成損害。</p>
+  </section>
+
+</main>
+
+<button class="scroll-top" aria-label="回到頂端">↑</button>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h5>關於本專題（公司代號：ZQ）</h5>
+      <p>林郁庭 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>實習單位：前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）</p>
+      <p>輔導老師：王仁甫</p>
+    </div>
+    <div>
+      <h5>聯絡資訊</h5>
+      <p>學校信箱：<a href="mailto:s1113104@mail.yzu.edu.tw">s1113104@mail.yzu.edu.tw</a></p>
+      <p>個人信箱：<a href="mailto:cadylinn0@gmail.com">cadylinn0@gmail.com</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 林郁庭 &nbsp;|&nbsp; 元智大學資訊管理學系 第三十一屆專業實習／專題製作報告</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

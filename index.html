@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Agent Security：從 Fuzzing 到 Indirect Prompt Injection 的 AI 攻防研究 — ZQ 專題成果</title>
+<title>Markdown 間接提示注入 Fuzzing 與 AI 防禦研究 — ZQ 專題成果</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,35 +11,36 @@
 
 <nav class="topnav">
   <div class="nav-inner">
-    <a class="brand" href="./index.html">AI Agent 安全專題（代號：ZQ）</a>
+    <a class="brand" href="./index.html">Markdown 間接提示注入研究（ZQ）</a>
     <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
       <li><a class="active" href="./index.html">首頁總覽</a></li>
-      <li><a href="./research.html">研究動機與攻擊面</a></li>
-      <li><a href="./experiments.html">AI vs. AI 攻防框架</a></li>
-      <li><a href="./reflection.html">四階段實作與心得</a></li>
+      <li><a href="./research.html">研究目標與規範</a></li>
+      <li><a href="./experiments.html">系統設計與方法</a></li>
+      <li><a href="./results.html">實驗結果</a></li>
+      <li><a href="./reflection.html">進度、學習與心得</a></li>
     </ul>
   </div>
 </nav>
 
-<!-- 滿版第一面封面 (100vh Full Screen Cover) -->
 <header class="hero">
   <div class="hero-inner from-center">
-    <p class="hero-eyebrow">元智大學 資訊管理學系 ｜ 畢業專題成果報告</p>
-    <h1>AI Agent Security</h1>
-    <h2>從 Fuzzing 到 Indirect Prompt Injection 的 AI 攻防研究</h2>
-    
+    <p class="hero-eyebrow">元智大學 資訊管理學系 ｜ 第三十一屆專業實習／專題製作報告 ｜ 1142 學期</p>
+    <h1>Markdown 間接提示注入</h1>
+    <h2>Fuzzing 與 AI 防禦研究</h2>
+
     <p class="hero-meta">
-      <strong>指導老師：</strong>王仁甫 教授<br>
-      <strong>專題代號：【ZQ】 ｜ 研究成員：</strong>林郁庭、謝雨澄<br>
-      <strong>核心問題：</strong>如果 AI Agent 讀取的外部 Markdown / Skill 資料中藏有惡意指令，AI 是否會把「資料」誤認成「指令」並偏離原始任務？
+      <strong>公司代號：</strong>ZQ<br>
+      <strong>實習單位：</strong>前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）<br>
+      <strong>輔導老師：</strong>王仁甫<br>
+      <strong>姓名：</strong>林郁庭
     </p>
 
-    <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
-      <a href="#summary" style="display: inline-block; background: var(--primary); color: #fff; padding: 10px 22px; border-radius: 4px; font-weight: 700; transition: background 0.2s;">探索專題成果 ↓</a>
-      <a href="./research.html" style="display: inline-block; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 10px 22px; border-radius: 4px; font-weight: 500; transition: background 0.2s;">深入研究概念 →</a>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#summary">探索專題成果 ↓</a>
+      <a class="btn-ghost" href="./results.html">直接看實驗結果 →</a>
     </div>
   </div>
 
@@ -51,141 +52,124 @@
 
 <main class="container" id="summary">
 
-  <!-- 一句話理解整個專題 -->
   <section class="section">
-    <div class="card highlight from-bottom" style="border-left: 6px solid var(--primary-light); padding: 32px;">
-      <h3 style="color: var(--primary-light); margin-bottom: 12px;">一句話理解整個專題</h3>
-      <p style="font-size: 1.15rem; line-height: 1.9; color: #f1f5f9; margin: 0;">
-        我們先準備帶有 Prompt Injection 特徵的 Markdown 文件當作 <strong>Seed</strong>，利用 <strong>AI Fuzzing（Attacker AI）</strong> 自動產生大量變異版本，讓 <strong>Target AI Agent</strong> 讀取並觀察哪些輸入會使 Agent 偏離原本任務；接著把攻擊結果建立成 <strong>Attack Dataset</strong>，再利用這些資料設計 <strong>Defender AI</strong> 防禦機制，最後重新攻擊並比較防禦前後的 <strong>Attack Success Rate（ASR）</strong>。
-      </p>
-      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.15); font-family: monospace; color: #94a3b8; font-size: 0.95rem;">
-        核心流程：Seed → AI Fuzzing → 對抗性 MD → 攻擊 Agent 找弱點 → 收 Dataset → AI 防禦 → 驗證 ASR 下降
-      </div>
+    <div class="card highlight lead-card from-bottom">
+      <h4>一句話理解整個專題</h4>
+      <p>研究對象是會載入第三方 Markdown 技能檔（<code>SKILL.md</code>）、具備<strong>持久記憶</strong>與<strong>工具呼叫</strong>能力的 LLM Agent。這三項能力結合起來，讓攻擊者有機會透過一份被汙染的文件，在<strong>之後的回合</strong>才觸發延遲的多步攻擊。本專題提出一套可重現、完全去武器化的 fuzzing 方法來量測這種攻擊，並評估 AI 防禦。</p>
+      <div class="lead-flow">F5 惡意技能供應鏈 → F2 記憶污染 → F3 工具濫用</div>
     </div>
   </section>
 
-  <!-- 關鍵研究指標儀表板 -->
   <section class="section" style="padding-top: 0;">
     <div class="card-row four from-bottom">
       <div class="stat-box">
         <div class="stat-num">72</div>
-        <p class="stat-label">Prompt Injection Seed (種子庫)</p>
+        <p class="stat-label">Seed 種子語料（InjecAgent 62 + PromptIntel 10）</p>
       </div>
       <div class="stat-box">
-        <div class="stat-num">360+</div>
-        <p class="stat-label">AI Fuzzing 變異測試樣本</p>
+        <div class="stat-num">2 × 360</div>
+        <p class="stat-label">AI 變異 SKILL.md（72 seed × 5 種變異算子）</p>
       </div>
       <div class="stat-box">
-        <div class="stat-num">10 種</div>
-        <p class="stat-label">語意與結構 Mutation 運算子</p>
+        <div class="stat-num">6 / 360</div>
+        <p class="stat-label">Qwen2.5-7B 完成整條攻擊鏈（1.7%）</p>
       </div>
       <div class="stat-box">
-        <div class="stat-num">AI vs AI</div>
-        <p class="stat-label">Attacker AI ⚔️ Defender AI</p>
+        <div class="stat-num">89%</div>
+        <p class="stat-label">指令進入記憶後，回合 2 照做的比例</p>
       </div>
     </div>
   </section>
 
-  <!-- 核心研究問句與動機 -->
-  <section class="section" id="research-question">
+  <section class="section" id="three-stages">
     <div class="section-head from-bottom">
-      <h3>核心研究問題 (Research Question)</h3>
+      <h3>攻擊拆成三個可量測的階段</h3>
     </div>
-
-    <div class="card-grid from-bottom">
-      <div class="card">
-        <h4>研究想探討的問題</h4>
-        <p style="font-size: 1.05rem; font-weight: 500; color: var(--primary);">
-          "Can an AI-driven fuzzing framework automatically discover indirect prompt-injection vulnerabilities in AI agents, and can an AI-based defense system detect and mitigate these attacks?"
-        </p>
-        <p><strong>中文：</strong>AI 驅動的 Fuzzing Framework 是否能自動發現 AI Agent 的間接提示注入弱點，並利用 AI 防禦機制偵測與降低這類攻擊的成功率？</p>
-        <p>現在的 AI Agent 不只會回答問題，還會讀取 Markdown、SKILL.md、搜尋網頁、使用 RAG 或呼叫 Tools 執行任務。若外部資料夾雜隱藏指令，Agent 能否區分「這是我要讀的資料」還是「這是我要遵守的指令」？</p>
-      </div>
-
-      <div class="card-row two">
-        <div class="card mini">
-          <h4>Direct Prompt Injection</h4>
-          <p>使用者直接下達惡意指令（如 <code>Ignore previous instructions</code>）。</p>
-        </div>
-        <div class="card mini">
-          <h4>Indirect Prompt Injection</h4>
-          <p>指令潛藏在外部 Markdown、Skill、Email 等資料中，被 Agent 讀取時觸發。</p>
-        </div>
-        <div class="card mini">
-          <h4>AI-based Fuzzer</h4>
-          <p>以 Attacker AI 自動改變語意、Markdown 結構、語氣，探索邊界盲點。</p>
-        </div>
-        <div class="card mini">
-          <h4>Defender AI</h4>
-          <p>在 Agent 載入前進行預先審查，區分 Benign、Suspicious 與 Malicious。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AI vs AI 攻防閉環圖 -->
-  <section class="section" id="ai-vs-ai">
-    <div class="section-head from-bottom">
-      <h3>AI vs. AI 完整攻防閉環架構</h3>
-    </div>
-
     <div class="pipeline-box from-bottom">
       <div class="pipeline-step">
-        <h5>1. 🔴 Attacker AI</h5>
-        <p style="font-size: 0.88rem; margin:0;">利用種子進行語意、格式變異，生成大量 Fuzzed Markdown 文件。</p>
+        <h5>F5 惡意技能供應鏈</h5>
+        <p class="step-text">Agent 載入含有注入內容的 <code>SKILL.md</code>。</p>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
-        <h5>2. 🤖 Target AI Agent</h5>
-        <p style="font-size: 0.88rem; margin:0;">在沙盒中讀取文件並執行原始任務，觀察是否受誘導偏離或越權。</p>
+        <h5>F2 記憶污染</h5>
+        <p class="step-text">Agent 在第一回合把注入內容寫進記憶。</p>
       </div>
       <div class="pipeline-arrow">→</div>
       <div class="pipeline-step">
-        <h5>3. 📊 Attack Dataset</h5>
-        <p style="font-size: 0.88rem; margin:0;">收集行為日誌、任務偏離標記與攻擊成功案例，計算初始 ASR。</p>
+        <h5>F3 工具濫用</h5>
+        <p class="step-text">第二回合使用者只提出一般問題，Agent 卻依記憶呼叫被注入的工具。</p>
       </div>
-      <div class="pipeline-arrow">→</div>
-      <div class="pipeline-step">
-        <h5>4. 🔵 Defender AI</h5>
-        <p style="font-size: 0.88rem; margin:0;">特徵工程與前置攔截審查；重新攻擊驗證防禦後 ASR 是否顯著下降。</p>
+    </div>
+    <p class="from-bottom">既有研究（InjecAgent）只涵蓋單回合的工具誤用；本專題補上 F5 與 F2 兩個階段，不只測「當場照做」，也測「寫進記憶、之後才發作」。</p>
+  </section>
+
+  <section class="section" id="findings">
+    <div class="section-head from-bottom">
+      <h3>主要發現</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <h4>強模型在硬化 prompt 下幾乎攻不破</h4>
+        <p>GPT-5.6-sol 在 strict 設定下，兩批各 360 筆的 F2、F3、端到端都是 0。但這是加了防護 prompt 的結果，不能代表模型本身就安全。</p>
+      </div>
+      <div class="card mini">
+        <h4>小模型上跨回合攻擊確實存在</h4>
+        <p>harness v2 下 Qwen2.5-7B 完成整條攻擊鏈 6/360（1.7%），Qwen3-8B 為 1/360（0.3%），全部來自 <code>authority_claim</code> 變異算子。</p>
+      </div>
+      <div class="card mini">
+        <h4>瓶頸是「把指令寫進記憶」</h4>
+        <p>指令一旦進了記憶，回合 2 有 89% 照做，而且回覆使用者時不會提到用了工具。</p>
+      </div>
+      <div class="card mini">
+        <h4>記憶措辭決定成敗</h4>
+        <p>只把記憶改成描述語氣，Qwen3 的照做率就從 10/10 降到 0/10（p = 1.1×10⁻⁵）。</p>
       </div>
     </div>
   </section>
 
-  <!-- 內容導覽總覽 (Staircase Layout) -->
   <section class="section" id="overview">
     <div class="section-head from-bottom">
-      <h3>成果報告導覽總覽</h3>
+      <h3>成果報告導覽</h3>
     </div>
 
     <div class="index-list">
       <div class="index-box from-left">
-        <a class="index-blob" href="./research.html"><h4>研究動機<br>與攻擊面</h4></a>
+        <a class="index-blob" href="./research.html"><h4>研究目標<br>與規範</h4></a>
         <div class="index-text">
-          <a href="./research.html#intro">1. 我們想研究什麼？AI Agent 的新型安全挑戰</a>
-          <a href="./research.html#direct-vs-indirect">2. Direct vs. Indirect Prompt Injection 本質差異</a>
-          <a href="./research.html#skill-attack-surface">3. 為什麼 SKILL.md / Markdown 成為全新攻擊面？</a>
-          <a href="./research.html#fuzzing-concept">4. 為什麼需要 Fuzzing（模糊測試）？種子與變異設計</a>
+          <a href="./research.html#goal">1. 工作簡述與研究目標：F5 → F2 → F3</a>
+          <a href="./research.html#questions">2. 四個研究問題</a>
+          <a href="./research.html#rules">3. 研究規範：mock 工具、去武器化、規格先於結果</a>
         </div>
       </div>
 
       <div class="index-box from-right">
-        <a class="index-blob" href="./experiments.html"><h4>AI vs. AI<br>攻防框架</h4></a>
+        <a class="index-blob" href="./experiments.html"><h4>系統設計<br>與方法</h4></a>
         <div class="index-text">
-          <a href="./experiments.html#ai-fuzzer">1. 🔴 Attacker AI：語意與結構變異自動化探索</a>
-          <a href="./experiments.html#target-agent">2. 🤖 Target AI Agent：任務執行與行為偏離觀測</a>
-          <a href="./experiments.html#oracle-asr">3. 判斷攻擊成功標準（Oracle）與 ASR 指標</a>
-          <a href="./experiments.html#defender-ai">4. 🔵 Defender AI：特徵提取、風險評分與攔截驗證</a>
+          <a href="./experiments.html#overview">1. 系統流程簡介</a>
+          <a href="./experiments.html#components">2. 系統功能：Seed、Attacker AI、Target Runner、Oracle、Defender、機制分析</a>
+          <a href="./experiments.html#features">3. 系統特色</a>
+          <a href="./experiments.html#env">4. 開發工具、使用對象與使用環境</a>
         </div>
       </div>
 
       <div class="index-box from-left">
-        <a class="index-blob" href="./reflection.html"><h4>四階段實作<br>與心得成長</h4></a>
+        <a class="index-blob" href="./results.html"><h4>實驗結果<br>與分析</h4></a>
         <div class="index-text">
-          <a href="./reflection.html#phase1-4">1. 專題實作四大階段（Phase 1 至 Phase 4）</a>
-          <a href="./reflection.html#skills">2. 專業技能收穫：AI 安全、測試自動化與工程規範</a>
-          <a href="./reflection.html#reflection">3. 心路歷程：從單純攻擊測試到建立完整攻防體系</a>
-          <a href="./reflection.html#suggestion">4. 給學弟妹與資管系上的建議</a>
+          <a href="./results.html#by-model">1. 跨模型攻擊結果</a>
+          <a href="./results.html#bottleneck">2. 攻擊鏈瓶頸：把指令寫進記憶</a>
+          <a href="./results.html#by-mutation">3. 變異算子效果與 harness v2 修正</a>
+          <a href="./results.html#defender-result">4. 偵測、Gate 防禦與機制分析</a>
+        </div>
+      </div>
+
+      <div class="index-box from-right">
+        <a class="index-blob" href="./reflection.html"><h4>進度、學習<br>與心得</h4></a>
+        <div class="index-text">
+          <a href="./reflection.html#progress">1. 實習期間完成之進度</a>
+          <a href="./reflection.html#role">2. 工作當中扮演的角色</a>
+          <a href="./reflection.html#learning">3. 學習收穫</a>
+          <a href="./reflection.html#self-eval">4. 自我評估、建議與心得感想</a>
         </div>
       </div>
     </div>
@@ -198,9 +182,10 @@
 <footer class="footer">
   <div class="footer-inner">
     <div>
-      <h5>關於專題研究團隊（代號：ZQ）</h5>
-      <p>林郁庭、謝雨澄 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
-      <p>指導老師：王仁甫 教授</p>
+      <h5>關於本專題（公司代號：ZQ）</h5>
+      <p>林郁庭 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>實習單位：前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）</p>
+      <p>輔導老師：王仁甫</p>
     </div>
     <div>
       <h5>聯絡資訊</h5>
@@ -209,7 +194,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <p>&copy; 2026 林郁庭、謝雨澄 &nbsp;|&nbsp; All Rights Reserved. 元智大學資訊管理學系畢業專題成果報告</p>
+    <p>&copy; 2026 林郁庭 &nbsp;|&nbsp; 元智大學資訊管理學系 第三十一屆專業實習／專題製作報告</p>
   </div>
 </footer>
 
