@@ -17,7 +17,7 @@
 }
 /* ===== Reset ===== */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+html { scroll-behavior: smooth; scroll-padding-top: 116px; }
 body {
   margin: 0;
   font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei",
@@ -960,6 +960,11 @@ table.custom-table tr.total-row td { font-weight: 700; background: var(--primary
   .bar-row { grid-template-columns: 1fr; gap: 4px; }
   .bar-val { white-space: normal; }
   .table-responsive table.custom-table { min-width: 620px; }
+}
+
+/* Keep the fixed nav to at most two rows: drop in-page sub-links on mid widths */
+@media (max-width: 1199px) {
+  .nav-links .subs { display: none; }
 }
 
 /* ===== Attribution page ===== */
