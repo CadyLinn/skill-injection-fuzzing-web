@@ -1,6 +1,6 @@
 # Markdown 間接提示注入 Fuzzing 與 AI 防禦研究
 
-**網站連結：<https://cadylinn.github.io/skill-injection-fuzzing-web/>**
+<https://cadylinn.github.io/skill-injection-fuzzing-web/>
 
 研究會載入第三方 `SKILL.md`、具備持久記憶與工具呼叫能力的 LLM Agent，將跨回合攻擊拆成 F5（惡意技能供應鏈）→ F2（記憶污染）→ F3（工具濫用）三個階段量測，並評估 Defender AI 與 gate 防禦。
 
