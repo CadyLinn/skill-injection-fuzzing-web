@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>四階段實作與心得 — ZQ 專題成果</title>
+<title>進度、學習與心得 — ZQ 專題成果</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,17 +11,18 @@
 
 <nav class="topnav">
   <div class="nav-inner">
-    <a class="brand" href="./index.html">AI Agent 安全專題（代號：ZQ）</a>
+    <a class="brand" href="./index.html">Markdown 間接提示注入研究（ZQ）</a>
     <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
       <li><a href="./index.html">首頁總覽</a></li>
-      <li><a href="./research.html">研究動機與攻擊面</a></li>
-      <li><a href="./experiments.html">AI vs. AI 攻防框架</a></li>
+      <li><a href="./research.html">研究目標與規範</a></li>
+      <li><a href="./experiments.html">系統設計與方法</a></li>
+      <li><a href="./results.html">實驗結果</a></li>
       <li class="has-subs">
-        <a class="active" href="./reflection.html">四階段實作與心得</a>
-        <span class="subs">(<a href="#phase1-4">四階段實作</a><a href="#skills">專業收穫</a><a href="#reflection">心得反思</a><a href="#suggestion">建議</a>)</span>
+        <a class="active" href="./reflection.html">進度、學習與心得</a>
+        <span class="subs">(<a href="#progress">完成進度</a><a href="#role">我的角色</a><a href="#learning">學習</a><a href="#self-eval">自我評估</a>)</span>
       </li>
     </ul>
   </div>
@@ -29,99 +30,138 @@
 
 <main class="container page-top">
 
-  <!-- 1. 專題實作四大階段 -->
-  <section class="section" id="phase1-4">
+  <section class="section" id="progress">
     <div class="section-head from-bottom">
-      <h3>1. 專題實作四大階段 (Phase 1 ~ Phase 4)</h3>
+      <h3>1. 實習期間完成之進度</h3>
     </div>
-
-    <div class="card-grid from-bottom">
-      <div class="card">
-        <h4>Phase 1：攻擊資料生成 (Offensive Generation)</h4>
-        <p><strong>目標：</strong>建立 MD-based Indirect Prompt Injection Fuzzer。<br>
-        1. 設計 Prompt Injection Seed 並建立標準種子庫。<br>
-        2. 規劃語意與排版 Mutation 策略。<br>
-        3. 利用 Attacker AI 自動產生大量對抗性 <code>.md</code> 文件。</p>
-      </div>
-
-      <div class="card">
-        <h4>Phase 2：Agent Attack Testing</h4>
-        <p><strong>目標：</strong>測試 AI Agent 是否受文件中的 Injection 影響。<br>
-        1. 建立嚴格隔離的 Sandbox 與 Mock Tools。<br>
-        2. 讓 Target Agent 讀取變異文件並執行任務。<br>
-        3. 觀測並記錄 Agent 是否偏離原始 Task、是否調用未授權工具。</p>
-      </div>
-
-      <div class="card">
-        <h4>Phase 3：建立 Attack Dataset</h4>
-        <p><strong>目標：</strong>彙整實驗數據建立標準安全數據集。<br>
-        記錄每次測試的 Seed、Mutation 類型、Agent 輸入輸出、Tool Call 與任務偏離情況，計算各類變異下的初始 ASR。</p>
-      </div>
-
-      <div class="card highlight">
-        <h4>Phase 4：AI Defense (Defensive Evaluation)</h4>
-        <p><strong>目標：</strong>建立 Prompt Injection 偵測與防禦系統。<br>
-        利用 Dataset 進行特徵工程與風險評分，設計 Defender AI 前置審查機制；最後由 Attacker AI 再次發動全量攻擊，實證防禦後 ASR 顯著下降！</p>
-      </div>
-    </div>
+    <ol class="custom-list from-bottom">
+      <li><strong>語料與變異：</strong>完成 72 個 seed 的整理與完整分類，以及兩批各 360 筆的 AI 變異。</li>
+      <li><strong>雲端模型 baseline：</strong>完成 VM 環境與兩回合 harness、smoke test；GPT-5.6-sol 在 strict 設定下兩批各 360 筆，relaxed 設定 33 筆；GPT-4o 跑到 188/360 時因 OpenRouter 每週額度暫停，之後決定不再續跑。</li>
+      <li><strong>防禦評估：</strong>建立 v1 與 harder_v1 兩份 Defender 資料集（各 432 筆），完成靜態規則與 Defender AI 的評估，以及 gate 的政策層級驗證與正常文件的自動檢查（72/72）。</li>
+      <li><strong>Target 模型選擇（10/14）：</strong>在相同 prompt 下試跑 Mistral-Nemo、Phi-4、Llama-3.2-3B、Granite-4.2-8B、Qwen2.5-7B 五個候選模型，比較有效輸出率與攻擊訊號。其中 Qwen2.5-7B 透過 API 時 5 筆都無法產生要求的 JSON 格式。</li>
+      <li><strong>Mistral-7B 本機實驗（10/14–10/16）：</strong>在 VM 上以 Ollama 部署 Mistral-7B，完成弱 prompt 對照組 360 筆（約兩天）：F2 為 25/360（6.9%），F3 為 0。檢查記憶內容，發現 25 筆中有 24 筆只存了標記，延遲指令從未寫進記憶。設計消融實驗後發現回合 2 的 payload 直接提供了測試標記，會造成 F3 的假象。並完成 Mistral 結果與 Defender gate 的逐筆配對。</li>
+      <li><strong>harness v2 與多模型比較（10/17–10/20）：</strong>依前述發現寫定 harness v2 規格，在同一組 60 筆上比較 Mistral-7B、Qwen2.5-7B、Llama-3.1-8B，並完成 seed baseline。Qwen2.5-7B 完整 360 筆，找到 6 筆有效端到端成功，並對這 6 筆做重現性檢查。</li>
+      <li><strong>Qwen3-8B 與記憶措辭消融（10/21–11/03）：</strong>Qwen3-8B 完整 360 筆，唯一的成功案例是 <code>promptintel-006.m05</code>。以該案例做記憶措辭消融：四種措辭 × 有無防禦指令各 10 次，加上 Qwen2.5 與 Llama 的跨模型對照，並以 Fisher exact test 與 Holm 校正完成統計檢定。</li>
+      <li><strong>機制分析：</strong>在 Colab 上完成 Qwen3-8B 的歸因圖、上游分析、feature intervention、attention／MLP patching 與逐層 residual patching。</li>
+      <li><strong>成果整理與發布：</strong>撰寫多篇 HackMD 實驗報告、給合作同學的 case study 文件，製作英文和中文可切換的公開網頁，以及學術版與白話版兩份互動報表。</li>
+    </ol>
   </section>
 
-  <!-- 2. 專業技能收穫 -->
-  <section class="section" id="skills">
+  <section class="section" id="role">
     <div class="section-head from-bottom">
-      <h3>2. 專業技能與工程能力提升</h3>
+      <h3>2. 工作當中扮演的角色</h3>
     </div>
-
     <div class="skill-grid">
       <div class="skill-card tech from-bottom">
-        <h4>AI Agent 系統與自動化 Fuzzing</h4>
-        <p>掌握智慧代理人架構（OpenClaw/Agentic Workflow），學會設計結合 LLM 的自動化語意模糊測試流程。</p>
+        <h4>實驗設計</h4>
+        <p>定義威脅模型、指標與 oracle，撰寫 harness 規格，設計消融實驗與對照組。</p>
       </div>
       <div class="skill-card tech from-bottom">
-        <h4>提示工程與對抗性樣本生成</h4>
-        <p>深刻理解直接與間接提示注入的攻防特徵，實作 10 大類語意混淆、角色偽冒與結構包裝的變異運算子。</p>
+        <h4>實驗執行與維運</h4>
+        <p>在 VM 上部署本機模型與 Agent 環境，撰寫批次執行與統計的 script，以背景 queue 管理長達數天的實驗，並處理逾時、記憶體不足等問題。</p>
       </div>
       <div class="skill-card tech from-bottom">
-        <h4>安全防禦與數據集評估</h4>
-        <p>構建標準化的 Attack Dataset 與雙階段 Oracle 評判邏輯，掌握以 ASR 為核心的科學量化驗證方法。</p>
+        <h4>資料分析</h4>
+        <p>統計各模型、各家族與各變異算子的結果，計算信賴區間與統計檢定，並在 GPU 上進行機制分析。</p>
       </div>
       <div class="skill-card tech from-bottom">
-        <h4>科研沙盒與倫理邊界規範</h4>
-        <p>落實「去武器化」科研原則，全程採用 Mock 工具與隔離環境，確保資安研究的高度嚴謹性與可重現性。</p>
+        <h4>品質把關</h4>
+        <p>回頭檢查不合理的結果，例如 Llama 的 F3 假象、回合 2 標記洩漏、Defender 的標籤洩漏，並據此修正評估方法。</p>
+      </div>
+      <div class="skill-card tech from-bottom">
+        <h4>成果溝通</h4>
+        <p>撰寫 HackMD 實驗報告，把結果整理成給不同對象的文件與網頁，並提供合作同學 fuzzing 論文所需的 case study 資料。</p>
       </div>
     </div>
   </section>
 
-  <!-- 3. 心路歷程反思 -->
-  <section class="section split" id="reflection">
-    <div class="split-title from-left">
-      <div class="title-blob"><h3>心路歷程<br>與自我反思</h3></div>
+  <section class="section" id="learning">
+    <div class="section-head from-bottom">
+      <h3>3. 學習</h3>
     </div>
-    <div class="split-body from-right">
-      <p><strong>專題的核心本質：建立完整的自動化攻防框架</strong><br>
-      專題剛起步時，我們曾思考是否只要手動寫出幾個精妙的 Prompt 攻擊成功就算達標？但在與王仁甫教授的探討中，我們深刻意識到：<strong>資安研究的價值不在於單點展示，而在於建立一套可自動化探索弱點、可量化統計、可學習防禦的完整系統體系。</strong></p>
 
-      <p><strong>體會「AI 打 AI」的前沿魅力：</strong><br>
-      透過讓 Attacker AI 擔任紅隊探索邊界，讓 Defender AI 擔任藍隊學習審查特徵，最後比對 ASR 下降幅度，這套閉環架構讓我們親身體會到下一代 AI 安全工程的精髓。從一開始對 Agent 行為不可控的迷茫，到逐步設計出客觀評判的 Oracle，每一步都是工程邏輯的躍升。</p>
+    <div class="card from-bottom learn-card">
+      <h4>一、跨回合提示注入的威脅模型與 Fuzzing 方法</h4>
+      <p>進入專題前，我對提示注入的理解停留在「在輸入裡藏一段指令，讓模型當場照做」。這次研究的跨回合攻擊更隱蔽：注入內容先被模型自己寫進記憶，到下一回合才發作，而且模型回覆使用者時不會提到它用了工具。使用者完全看不出異常，這讓我理解到 Agent 的「技能檔、記憶、工具」三者結合起來，本身就是新的攻擊面。</p>
+      <p>在 fuzzing 方面，我學到變異算子不能只看「整體成功率」：</p>
+      <ul class="plain-list">
+        <li><code>quality_assurance_note</code> 讓模型當場誤用的比例很高，卻沒有一筆跨回合成功；只有 <code>authority_claim</code> 能讓模型「記下來之後做」。</li>
+        <li>名稱上專為跨回合設計的條件觸發、延遲觸發算子，反而完全無效。</li>
+        <li>同一種變異在 Qwen 與 Mistral 上擴大了攻擊面（原始 seed 完全不會寫記憶，變異後大幅上升），在 Llama 上卻讓當場誤用從 4/12 降到 0/60。</li>
+      </ul>
+      <p style="margin:0;">這讓我體會到，評估算子要按目標行為與目標模型分開看。我也學到「不手寫越獄」的原則：為了逼出成功而加強注入，量到的是 prompt 能寫多強，不是模型有多脆弱。</p>
+    </div>
 
-      <p><strong>研究團隊協作（ZQ）：</strong><br>
-      在整個專題期間，團隊成員分工推進種子改寫、Fuzzer 變異腳本、數據集收集與防禦模型調優，培養了極具默契的研發協作與自主解決未知問題的韌性。</p>
+    <div class="card from-bottom learn-card">
+      <h4>二、實驗設計、評估與防禦驗證的嚴謹性</h4>
+      <p>這次最深刻的一課，是「<strong>量測方式本身可能比模型更影響結果</strong>」：</p>
+      <ul class="plain-list">
+        <li><strong>F3 的假象：</strong>Mistral 的消融實驗中，連沒有記憶的樣本都能命中 F3，追查後才發現回合 2 的 payload 直接提供了測試標記；同樣的問題讓 Llama 被判成 34/60 成功，實際上是 0/60。</li>
+        <li><strong>格式和行為要分開：</strong>試跑候選模型時，Qwen2.5 透過 API 5 筆都無法產生要求的 JSON。格式錯誤應該分開計算有效輸出率，不能直接算成「攻擊失敗」。</li>
+      </ul>
+      <p>防禦評估也有類似的陷阱。Defender AI 在 432 筆樣本上全部判對，看起來很完美，但樣本 ID 裡就含有「attack」「benign」這類字樣，也用到了攻擊家族的 metadata，不代表遇到新樣本也能判對。gate 擋下全部攻擊，也只是政策層級的推算。再加上 baseline 的攻擊成功率本來就接近 0（floor effect），無法證明防禦降低了什麼。我學到偵測器的 precision／recall 不等於 Agent 的攻擊成功率，兩者不能混為一談；而 strict baseline 的 0/360 也只能說是「加了防護 prompt 的 baseline」，不能說模型本身就安全。</p>
+      <p>從這些經驗我學到幾個做法：</p>
+      <ul class="plain-list">
+        <li>在跑實驗前先把規格寫定，避免看到結果才調整標準。</li>
+        <li>設計 oracle 時要確認「成功的條件只能來自我們想測的那個因素」。</li>
+        <li>用消融實驗一次只改一個條件，找出結果真正的來源。</li>
+        <li>用重現性檢查找出攻擊鏈中最不穩定的一步。</li>
+        <li>小樣本結果要附信賴區間；多組比較時要做多重比較校正。例如「拿掉一句話讓照做率降到 4/10」，未校正時看起來顯著，校正後就只能算趨勢。</li>
+        <li>遇到結果不一致時，設計實驗把可能的原因一一分開。例如完整精度與量化模型的行為不同時，我額外在量化模型上用三種 prompt 長度各跑 10 次，確認差異來自量化而非 prompt 長度。</li>
+      </ul>
+    </div>
+
+    <div class="card from-bottom learn-card">
+      <h4>三、LLM 機制可解釋性：歸因圖與因果介入</h4>
+      <p>這是我第一次實際使用機制可解釋性工具。我學到用 transcoder 把模型內部拆成可解讀的 feature，再用歸因圖追蹤「哪些 feature 推動了最後的決定」。實際分析時，原本預期會找到一個「開關」feature，結果發現兩組 prompt 用的是同一批 feature，差異是上千個 feature 的小幅偏移。這讓我理解到模型的決策往往是分散的，不一定有單一原因。</p>
+      <p>我學到歸因只是線性估計，必須用因果方法驗證：</p>
+      <ul class="plain-list">
+        <li><strong>feature intervention：</strong>直接關掉或調整 feature，看決策會不會跟著翻。</li>
+        <li><strong>activation patching：</strong>把一組的內部狀態換到另一組。</li>
+        <li><strong>逐層 residual patching：</strong>找出差異在第幾層進入決策位置。</li>
+      </ul>
+      <p style="margin:0;">我也學到要分辨哪些結果是「結構上必然」、不能當成發現：例如替換 attention 輸出會完全翻轉，是因為決策位置只能經由 attention 讀到前文。技術上，這部分也讓我熟悉了 GPU 記憶體管理（大模型的 OOM 問題、lazy loading）、CUDA 錯誤的除錯方式，以及直接解析 PyTorch 檔案格式來讀取大型歸因矩陣。</p>
+    </div>
+
+    <div class="card from-bottom learn-card">
+      <h4>四、非技術面：研究溝通、合作與資源管理</h4>
+      <p>研究做完之後，要讓別人看得懂、用得上，同樣需要花心力。我把每個階段的結果寫成 HackMD 實驗報告，並針對不同對象準備了不同版本：給合作同學的完整技術文件（含所有數據、限制、路徑與重現步驟），以及英文和中文可切換的公開網頁。在寫文件時，我學到要清楚區分「已驗證的結論」、「只能算趨勢的觀察」和「尚未驗證的建議」，並主動寫出限制。報告裡如果有前後不一致的數字（例如摘要檔顯示的筆數與逐筆結果不同），也要寫明採用哪一個、為什麼。</p>
+      <p>合作方面，我的實驗要作為合作同學論文中的 case study，所以必須站在對方的角度思考：他需要哪些數字、哪些結論可以引用、哪些地方要附上保留。把成果交出去之前，我也會回頭核對數據來源，確保每個數字都能追溯到原始紀錄。</p>
+      <p style="margin:0;">資源管理方面，這次的限制很多：VM 只有 4 核 CPU、沒有 GPU，本機模型每筆要跑 4–5 分鐘，360 筆就要兩天；雲端 API 有每週額度，GPT-4o 跑到一半就因額度暫停；GPU 運算也要另外到 Colab 上做。我學會把長時間的實驗排進背景 queue、讓它可以中斷續跑；在動手之前先判斷哪些分析是「必要的」、哪些是「補了會更好的」；也學會在情況改變時做取捨，例如決定 GPT-4o 不再續跑，把資源轉到更能回答研究問題的本機模型上。</p>
     </div>
   </section>
 
-  <!-- 4. 給系上與學弟妹的建議 -->
-  <section class="section split reverse" id="suggestion">
-    <div class="split-body from-left">
-      <p><strong>給資管系上的建議：</strong><br>
-      衷心感謝系上提供完善的專題研究資源與成果展示機會。隨著 Agentic AI 時代的來臨，建議系上未來能在課程中增加更多自主代理系統架構、API 安全與對抗性 AI 的專案實作內容，讓同學能接軌國際最前沿的技術熱點。</p>
-
-      <p><strong>給學弟妹的建議：</strong><br>
-      1. <strong>儘早動手跑實驗：</strong>概念想得再多，不如親自寫出第一版 Fuzzing 腳本跑一次 Log，真實數據會告訴你問題在哪裡。<br>
-      2. <strong>重視科研記錄與可重現性：</strong>每次測試都留下完整的日誌與元數據，這會讓你的研究成果在最後評審展現時極具說服力！<br>
-      3. <strong>享受挑戰：</strong>遇到瓶頸是探索未知的必經之路，保持好奇心與耐性，專題帶給你的收穫將遠超預期！</p>
+  <section class="section" id="self-eval">
+    <div class="section-head from-bottom">
+      <h3>4. 自我評估及心得感想</h3>
     </div>
-    <div class="split-title from-right">
-      <div class="title-blob alt"><h3>致謝與建議<br>給系上與學弟妹</h3></div>
+
+    <div class="card from-bottom learn-card">
+      <h4>一、自我評估</h4>
+      <p>需要加強的地方也很明顯：</p>
+      <ul class="plain-list">
+        <li>實驗初期考慮得不夠周全，第一版 harness 的問題要到結果出來才發現。之後我會在實驗開始前，更仔細地推演量測方式可能出錯的地方。</li>
+        <li>防禦的評估受到 floor effect 與標籤洩漏的限制，還不能宣稱防禦有效。</li>
+        <li>機制分析目前只有一個案例，樣本數也偏小，結論的普遍性有限。</li>
+      </ul>
+    </div>
+
+    <div class="card from-bottom learn-card" id="suggestion">
+      <h4>二、提案改善或建議</h4>
+      <ol class="plain-list">
+        <li><strong>建立更難的 holdout 資料集：</strong>目前雲端模型的 baseline 攻擊成功率是 0，防禦前後無法比較。建議以跨回合成功率較高的手法（例如 <code>authority_claim</code>）為基礎，產生 Defender 沒看過的新樣本，並在可被攻破的本機模型上評估防禦。</li>
+        <li><strong>讓 Defender 盲測：</strong>移除樣本 ID 中的標籤與攻擊家族 metadata，確認 Defender AI 的判斷來自文件內容本身，再重做 gate 對照。</li>
+        <li><strong>把防禦放在記憶寫入的時候：</strong>實驗顯示攻擊鏈最不穩定、也最能擋下攻擊的一步是「把指令寫進記憶」。建議在寫入記憶時檢查內容是否含工具指令，或在讀取時把記憶標記為不可信資料，而不是只靠第二回合的防禦指令。</li>
+        <li><strong>評估變異算子時分模型、分目標行為：</strong>同一個算子或字詞在不同模型上可能效果相反，fuzzing 結果應分模型呈現，並把「當場誤用」和「跨回合誤用」分開計算。</li>
+        <li><strong>實驗流程標準化：</strong>把「規格先寫定、輸出含來源紀錄、格式錯誤與攻擊失敗分開計算、queue 可續跑、結果附信賴區間與模型／API／日期資訊」整理成實驗室的共用流程，減少重工與量測失真。</li>
+      </ol>
+    </div>
+
+    <div class="card highlight from-bottom learn-card" id="reflection">
+      <h4>三、心得感想</h4>
+      <p>感謝王老師跟學長給予提點方向。這是我第一次嘗試做資訊安全方面的專題，剛開始不太清楚如何操作第一步，感謝王老師一直給予鼓勵，實驗室的學長也不厭其煩的提點，並協助我建立環境和提供研究資源。在製作專題的過程中也學習與實驗室和不同科系的同學合作，透過與同學們交流能讓我對專題的下一步該如何進行，有更清晰的方向，之後進行反覆修正和測試，慢慢構出一點成果。</p>
+      <p>一開始跑雲端模型的時候，遇到很多困難，因為模型一直沒有成功打進去，幸好有學長的建議：換地端模型，因為 GPT-5.6-sol 是近期新的模型，有更強大的防禦，因此不用灰心，可以嘗試其他開源模型。接著我嘗試多次不同的模型也沒有成功的 F3 端到端，直到第一筆 Qwen2.5，我在系圖跑出來的！這個突破性的進度，最後 Qwen2.5 成功了 6/360 筆，幾乎都是同一個 fuzzing 種子。</p>
+      <p style="margin:0;">我真的很感謝學妹的幫助，在我狀態不好想休息時，幫忙我跟老師和學長報告進度。我從實習轉專題進度一直有壓力，很感謝一直以來協助我的同伴，不論是系上老師、指導老師和學長、學妹，沒有你們的幫助，我沒辦法想像我能完成畢業專題。</p>
     </div>
   </section>
 
@@ -132,9 +172,10 @@
 <footer class="footer">
   <div class="footer-inner">
     <div>
-      <h5>關於專題研究團隊（代號：ZQ）</h5>
-      <p>林郁庭、謝雨澄 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
-      <p>指導老師：王仁甫 教授</p>
+      <h5>關於本專題（公司代號：ZQ）</h5>
+      <p>林郁庭 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>實習單位：前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）</p>
+      <p>輔導老師：王仁甫</p>
     </div>
     <div>
       <h5>聯絡資訊</h5>
@@ -143,7 +184,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <p>&copy; 2026 林郁庭、謝雨澄 &nbsp;|&nbsp; All Rights Reserved. 元智大學資訊管理學系專題成果報告</p>
+    <p>&copy; 2026 林郁庭 &nbsp;|&nbsp; 元智大學資訊管理學系 第三十一屆專業實習／專題製作報告</p>
   </div>
 </footer>
 
