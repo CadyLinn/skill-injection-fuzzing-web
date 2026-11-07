@@ -33,7 +33,7 @@
   <!-- 1. 總覽 -->
   <section class="section" id="overview-kpi">
     <div class="section-head from-bottom">
-      <h3>1. 📈 實驗結果總覽</h3>
+      <h3>1. 實驗結果總覽</h3>
     </div>
     <p class="from-bottom">研究對象是會載入第三方 <code>SKILL.md</code>、具備持久記憶與工具呼叫能力的 LLM Agent。攻擊拆成三個可量測階段：<strong>F5</strong> 載入被汙染的技能檔 → <strong>F2</strong> 第一回合把注入內容寫進記憶 → <strong>F3</strong> 第二回合使用者只問一般問題，Agent 卻依記憶呼叫被注入的工具。F2 與 F3 同時成立才算<strong>端到端成功</strong>。</p>
     <div class="card-row four from-bottom">
@@ -59,7 +59,7 @@
   <!-- 2. 跨模型結果 -->
   <section class="section" id="by-model">
     <div class="section-head from-bottom">
-      <h3>2. 🤖 跨模型攻擊結果</h3>
+      <h3>2. 跨模型攻擊結果</h3>
     </div>
 
     <div class="card from-bottom">
@@ -120,7 +120,7 @@
   <!-- 3. 攻擊鏈瓶頸 -->
   <section class="section" id="bottleneck">
     <div class="section-head from-bottom">
-      <h3>3. 🔗 攻擊鏈的瓶頸：把指令寫進記憶</h3>
+      <h3>3. 攻擊鏈的瓶頸：把指令寫進記憶</h3>
     </div>
     <div class="pipeline-box from-bottom">
       <div class="pipeline-step">
@@ -144,7 +144,7 @@
   <!-- 4. 變異算子 -->
   <section class="section" id="by-mutation">
     <div class="section-head from-bottom">
-      <h3>4. 🔴 變異算子：要分模型、分目標行為看</h3>
+      <h3>4. 變異算子：要分模型、分目標行為看</h3>
     </div>
     <div class="card-row three from-bottom">
       <div class="card mini">
@@ -171,7 +171,7 @@
   <!-- 5. Harness 修正 -->
   <section class="section" id="harness-v2">
     <div class="section-head from-bottom">
-      <h3>5. 🧪 量測方式本身也會造成假象：harness v1 → v2</h3>
+      <h3>5. 量測方式本身也會造成假象：harness v1 → v2</h3>
     </div>
     <div class="card-row two from-bottom">
       <div class="card">
@@ -190,7 +190,7 @@
   <!-- 6. Defender -->
   <section class="section" id="defender-result">
     <div class="section-head from-bottom">
-      <h3>6. 🔵 偵測與 Gate 防禦</h3>
+      <h3>6. 偵測與 Gate 防禦</h3>
     </div>
     <p class="from-bottom">建立兩份 Defender 資料集，各 432 筆（360 攻擊 + 72 正常）：<strong>v1</strong> 保留明顯的測試標記，<strong>harder_v1</strong> 移除了明顯標記。</p>
     <div class="table-responsive from-bottom">
@@ -215,7 +215,7 @@
       </div>
     </div>
     <div class="caveat from-bottom">
-      <strong>⚠️ 這些數字還不能宣稱防禦有效</strong>
+      <strong>這些數字還不能宣稱防禦有效</strong>
       <ul>
         <li><strong>標籤洩漏：</strong>樣本 ID 含「attack」「benign」字樣，Defender 也用到攻擊家族 metadata，不代表遇到新樣本也能判對。</li>
         <li><strong>政策層級推算：</strong>Gate 的結果是推算，不是實際重跑 Agent。</li>
@@ -227,7 +227,7 @@
   <!-- 7. 記憶措辭與機制 -->
   <section class="section" id="mechanism">
     <div class="section-head from-bottom">
-      <h3>7. 🧠 記憶措辭消融與機制分析（Qwen3-8B）</h3>
+      <h3>7. 記憶措辭消融與機制分析（Qwen3-8B）</h3>
     </div>
     <div class="card-row two from-bottom">
       <div class="card">
@@ -246,7 +246,7 @@
   <!-- 8. 建議 -->
   <section class="section" id="next-steps">
     <div class="section-head from-bottom">
-      <h3>8. 🛠️ 限制與後續建議</h3>
+      <h3>8. 限制與後續建議</h3>
     </div>
     <div class="card-row two from-bottom">
       <div class="card mini">
