@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown 間接提示注入 Fuzzing 與 AI 防禦研究 — ZQ 專題成果</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="./1151ZQ.index.html">Markdown 間接提示注入研究（ZQ）</a>
+    <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a class="active" href="./1151ZQ.index.html">首頁總覽</a></li>
+      <li><a href="./research.html">研究目標與規範</a></li>
+      <li><a href="./experiments.html">系統設計與方法</a></li>
+      <li><a href="./results.html">實驗結果</a></li>
+      <li><a href="./attribution.html">機制分析</a></li>
+      <li><a href="./reflection.html">進度、學習與心得</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner from-center">
+    <p class="hero-eyebrow">元智大學 資訊管理學系 ｜ 第三十一屆專業實習／專題製作報告 ｜ 1142 學期</p>
+    <h1>Markdown 間接提示注入</h1>
+    <h2>Fuzzing 與 AI 防禦研究</h2>
+
+    <p class="hero-meta">
+      <strong>組別代號：</strong>ZQ<br>
+      <strong>實習單位：</strong>前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）<br>
+      <strong>輔導老師：</strong>王仁甫<br>
+      <strong>姓名：</strong>林郁庭
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="#summary">探索專題成果 ↓</a>
+      <a class="btn-ghost" href="./results.html">直接看實驗結果 →</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-indicator">
+    <span>SCROLL DOWN</span>
+    <span>↓</span>
+  </div>
+</header>
+
+<main class="container" id="summary">
+
+  <section class="section">
+    <div class="card highlight lead-card from-bottom">
+      <h4>一句話理解整個專題</h4>
+      <p>研究對象是會載入第三方 Markdown 技能檔（<code>SKILL.md</code>）、具備<strong>持久記憶</strong>與<strong>工具呼叫</strong>能力的 LLM Agent。這三項能力結合起來，讓攻擊者有機會透過一份被汙染的文件，在<strong>之後的回合</strong>才觸發延遲的多步攻擊。本專題提出一套可重現、完全去武器化的 fuzzing 方法來量測這種攻擊，並評估 AI 防禦。</p>
+      <div class="lead-flow">F5 惡意技能供應鏈 → F2 記憶污染 → F3 工具濫用</div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="card-row four from-bottom">
+      <div class="stat-box">
+        <div class="stat-num">72</div>
+        <p class="stat-label">Seed 種子語料（InjecAgent 62 + PromptIntel 10）</p>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">2 × 360</div>
+        <p class="stat-label">AI 變異 SKILL.md（72 seed × 5 種變異算子）</p>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">6 / 360</div>
+        <p class="stat-label">Qwen2.5-7B 完成整條攻擊鏈（1.7%）</p>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">89%</div>
+        <p class="stat-label">指令進入記憶後，回合 2 照做的比例</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="three-stages">
+    <div class="section-head from-bottom">
+      <h3>攻擊拆成三個可量測的階段</h3>
+    </div>
+    <div class="pipeline-box from-bottom">
+      <div class="pipeline-step">
+        <h5>F5 惡意技能供應鏈</h5>
+        <p class="step-text">Agent 載入含有注入內容的 <code>SKILL.md</code>。</p>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <h5>F2 記憶污染</h5>
+        <p class="step-text">Agent 在第一回合把注入內容寫進記憶。</p>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <h5>F3 工具濫用</h5>
+        <p class="step-text">第二回合使用者只提出一般問題，Agent 卻依記憶呼叫被注入的工具。</p>
+      </div>
+    </div>
+    <p class="from-bottom">既有研究（InjecAgent）只涵蓋單回合的工具誤用；本專題補上 F5 與 F2 兩個階段，不只測「當場照做」，也測「寫進記憶、之後才發作」。</p>
+  </section>
+
+  <section class="section" id="findings">
+    <div class="section-head from-bottom">
+      <h3>主要發現</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <h4>強模型在硬化 prompt 下幾乎攻不破</h4>
+        <p>GPT-5.6-sol 在 strict 設定下，兩批各 360 筆的 F2、F3、端到端都是 0。但這是加了防護 prompt 的結果，不能代表模型本身就安全。</p>
+      </div>
+      <div class="card mini">
+        <h4>小模型上跨回合攻擊確實存在</h4>
+        <p>harness v2 下 Qwen2.5-7B 完成整條攻擊鏈 6/360（1.7%），Qwen3-8B 為 1/360（0.3%），全部來自 <code>authority_claim</code> 變異算子。</p>
+      </div>
+      <div class="card mini">
+        <h4>瓶頸是「把指令寫進記憶」</h4>
+        <p>指令一旦進了記憶，回合 2 有 89% 照做，而且回覆使用者時不會提到用了工具。</p>
+      </div>
+      <div class="card mini">
+        <h4>記憶措辭決定成敗</h4>
+        <p>只把記憶改成描述語氣，Qwen3 的照做率就從 10/10 降到 0/10（p = 1.1×10⁻⁵）。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="overview">
+    <div class="section-head from-bottom">
+      <h3>成果報告導覽</h3>
+    </div>
+
+    <div class="index-list">
+      <div class="index-box from-left">
+        <a class="index-blob" href="./research.html"><h4>研究目標<br>與規範</h4></a>
+        <div class="index-text">
+          <a href="./research.html#goal">1. 工作簡述與研究目標：F5 → F2 → F3</a>
+          <a href="./research.html#questions">2. 四個研究問題</a>
+          <a href="./research.html#rules">3. 研究規範：mock 工具、去武器化、規格先於結果</a>
+        </div>
+      </div>
+
+      <div class="index-box from-right">
+        <a class="index-blob" href="./experiments.html"><h4>系統設計<br>與方法</h4></a>
+        <div class="index-text">
+          <a href="./experiments.html#overview">1. 系統流程簡介</a>
+          <a href="./experiments.html#components">2. 系統功能：Seed、Attacker AI、Target Runner、Oracle、Defender、機制分析</a>
+          <a href="./experiments.html#features">3. 系統特色</a>
+          <a href="./experiments.html#env">4. 開發工具、使用對象與使用環境</a>
+        </div>
+      </div>
+
+      <div class="index-box from-left">
+        <a class="index-blob" href="./results.html"><h4>實驗結果<br>與分析</h4></a>
+        <div class="index-text">
+          <a href="./results.html#by-model">1. 跨模型攻擊結果</a>
+          <a href="./results.html#bottleneck">2. 攻擊鏈瓶頸：把指令寫進記憶</a>
+          <a href="./results.html#by-mutation">3. 變異算子效果與 harness v2 修正</a>
+          <a href="./results.html#defender-result">4. 偵測、Gate 防禦與機制分析</a>
+        </div>
+      </div>
+
+      <div class="index-box from-right">
+        <a class="index-blob" href="./attribution.html"><h4>機制分析<br>A0 vs A3</h4></a>
+        <div class="index-text">
+          <a href="./attribution.html#wording">1. 記憶措辭消融：哪些字決定攻擊成敗</a>
+          <a href="./attribution.html#cross-model">2. 跨模型比較與統計檢定</a>
+          <a href="./attribution.html#graph">3. 歸因圖：差異從哪裡來</a>
+          <a href="./attribution.html#causal">4. 因果驗證：feature intervention 與 patching</a>
+        </div>
+      </div>
+
+      <div class="index-box from-left">
+        <a class="index-blob" href="./reflection.html"><h4>進度、學習<br>與心得</h4></a>
+        <div class="index-text">
+          <a href="./reflection.html#progress">1. 實習期間完成之進度</a>
+          <a href="./reflection.html#role">2. 工作當中扮演的角色</a>
+          <a href="./reflection.html#learning">3. 學習收穫</a>
+          <a href="./reflection.html#self-eval">4. 自我評估、建議與心得感想</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<button class="scroll-top" aria-label="回到頂端">↑</button>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h5>關於本專題（組別代號：ZQ）</h5>
+      <p>林郁庭 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>實習單位：前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）</p>
+      <p>輔導老師：王仁甫</p>
+    </div>
+    <div>
+      <h5>聯絡資訊</h5>
+      <p>學校信箱：<a href="mailto:s1113104@mail.yzu.edu.tw">s1113104@mail.yzu.edu.tw</a></p>
+      <p>個人信箱：<a href="mailto:cadylinn0@gmail.com">cadylinn0@gmail.com</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 林郁庭 &nbsp;|&nbsp; 元智大學資訊管理學系 第三十一屆專業實習／專題製作報告</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
