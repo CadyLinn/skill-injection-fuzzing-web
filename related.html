@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文獻閱讀 — ZQ 專題成果</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-inner">
+    <a class="brand" href="./ZQ.index.html">Markdown 間接提示注入研究（ZQ）</a>
+    <button class="nav-toggle" aria-label="開關選單" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="./ZQ.index.html">首頁總覽</a></li>
+      <li><a href="./research.html">研究目標與規範</a></li>
+      <li class="has-subs">
+        <a class="active" href="./related.html">文獻閱讀</a>
+        <span class="subs">(<a href="#openclaw">OpenClaw</a><a href="#skillject">SkillJect</a><a href="#compare">比較</a><a href="#takeaways">啟示</a>)</span>
+      </li>
+      <li><a href="./experiments.html">系統設計與方法</a></li>
+      <li><a href="./results.html">實驗結果</a></li>
+      <li><a href="./attribution.html">機制分析</a></li>
+      <li><a href="./reflection.html">進度、學習與心得</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container page-top">
+
+  <section class="section" id="intro">
+    <div class="section-head from-bottom">
+      <h3>文獻閱讀：我們看了這兩篇論文</h3>
+    </div>
+    <div class="card highlight lead-card from-bottom">
+      <p>為了定位本專題，我們讀了兩篇與「技能檔注入」直接相關的論文。一篇從系統架構的角度，提出 OpenClaw 的 F1–F5 信任邊界分類；另一篇提出自動產生惡意技能的攻擊框架 SkillJect。</p>
+      <p style="margin:0;">我們實驗用的 <strong>F5 → F2 → F3</strong> 三個階段，就是沿用第一篇的分類；第二篇則是和本專題最接近的「AI 自動產生注入技能」研究，可以拿來對照我們的設計與結果。</p>
+    </div>
+  </section>
+
+  <section class="section" id="openclaw">
+    <div class="section-head from-bottom">
+      <h3>1. OpenClaw in the Wild: Security Analysis of Autonomous Agents</h3>
+    </div>
+    <div class="card from-bottom">
+      <h4>論文在做什麼</h4>
+      <p>這篇把 OpenClaw 當作「自主託管 AI agent」的代表，分析它的架構與安全風險。作者認為，OpenClaw 不只是包裝模型的一層外殼，而是把通訊管道、Gateway、會話與記憶、工具、技能和擴充功能都整合在同一個長期運行的環境裡。因此安全問題不能只看「模型擋不擋得住一段惡意 prompt」，而要看<strong>不受信任的資料，能不能一路被提升成有特權的操作</strong>。</p>
+      <p style="margin:0;">論文依照資料在系統中的流向，把攻擊面分成五個信任邊界：</p>
+    </div>
+    <div class="table-responsive from-bottom">
+      <table class="custom-table">
+        <thead>
+          <tr><th>資料流</th><th>信任邊界</th><th>代表性風險</th><th>本專題</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>F1：Channel → Gateway</td><td>通道存取</td><td>發送者偽造、配對碼攔截、直接提示注入</td><td><small>不在範圍內</small></td></tr>
+          <tr class="total-row"><td>F2：Gateway → Agent</td><td>會話與狀態</td><td>記憶污染、跨會話污染、上下文漂移</td><td>回合 1 寫入記憶</td></tr>
+          <tr class="total-row"><td>F3：Agent → Tools</td><td>工具執行</td><td>工具參數注入、繞過審批、未授權指令</td><td>回合 2 呼叫被注入的工具</td></tr>
+          <tr><td>F4：Agent → External</td><td>外部內容</td><td>間接提示注入、檢索污染</td><td><small>不在範圍內</small></td></tr>
+          <tr class="total-row"><td>F5：ClawHub → Agent</td><td>擴充功能供應鏈</td><td>惡意技能、技能檔中藏指令</td><td>載入被注入的 <code>SKILL.md</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <h4>攻擊會跨邊界傳播</h4>
+        <p>論文指出三條典型攻擊鏈：F1→F2→F3、F4→F2→F3、F5→F2→F3。並舉了兩個真實案例：一是惡意網頁誘導 agent 執行安裝腳本並改寫記憶檔，讓指令延續到之後的會話；二是 <code>SKILL.md</code> 中藏有指令的惡意技能，被用來散布 macOS 竊密程式。後者正好是本專題測的 <strong>F5 → F2 → F3</strong>。</p>
+      </div>
+      <div class="card mini">
+        <h4>記憶是「傳送帶」</h4>
+        <p>論文把會話與狀態邊界（F2）形容為入口與實際執行之間的傳送帶：短暫的攻擊輸入就是在這裡變成長期的操作槓桿。防禦建議包括會話隔離、<strong>嚴格驗證記憶回寫</strong>，以及在讀取記憶時做語意淨化。</p>
+      </div>
+      <div class="card mini">
+        <h4>防禦要分層</h4>
+        <p>作者認為「完全消除提示注入」不切實際，應該在每個邊界重建信任隔離：工具呼叫在執行前攔截並依政策審核、技能視為不可信的二進位檔、並保留可稽核的紀錄，以便事後追查。</p>
+      </div>
+      <div class="card mini">
+        <h4>缺少長時間、有狀態的評估</h4>
+        <p>論文在開放挑戰中提到，現有 benchmark 多半是短期、無狀態的單次攻擊，未來需要能模擬<strong>延遲觸發</strong>、跨會話受損的評估框架。這正是本專題兩回合 harness 想補的缺口。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="skillject">
+    <div class="section-head from-bottom">
+      <h3>2. SkillJect: Automating Skill-Based Prompt Injection for Skill-Enabled Agents</h3>
+    </div>
+    <div class="card from-bottom">
+      <h4>論文在做什麼</h4>
+      <p>SkillJect 是第一個針對 agent 技能、<strong>自動產生並優化</strong>惡意技能的框架。作者先發現，直接把明顯的惡意指令寫進 <code>SKILL.md</code> 通常沒用：不是被模型拒絕，就是被忽略。因此他們把攻擊拆成兩個通道：</p>
+      <ul class="custom-list" style="margin-bottom:0;">
+        <li><strong>構件通道：</strong>把實際動作藏在看起來很普通的輔助腳本（<code>.sh</code>、<code>.py</code>）裡。</li>
+        <li><strong>指令通道：</strong>改寫 <code>SKILL.md</code>，在文件最前面把這支腳本包裝成「使用技能前必須先執行的步驟」。</li>
+      </ul>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <h4>三個 agent 的閉環</h4>
+        <p>Attack Agent 產生被注入的技能，Victim Agent 用它執行任務，Evaluate Agent 檢查執行軌跡，判斷腳本有沒有被執行；如果失敗，會回報是「被忽略」還是「被拒絕」。Attack Agent 再依據回饋改寫 <code>SKILL.md</code>，腳本本身維持不變，最多迭代 5 輪。</p>
+      </div>
+      <div class="card mini">
+        <h4>主要結果</h4>
+        <p>資料集是從 ClawHub 取得的 100 個真實技能。在 Claude Code 上，直接注入的 ASR 是 0%，SkillJect 平均達 80.7%；在 OpenClaw 上平均為 80.5%。較新的前沿模型中，GPT-5.4 為 28.7%，Claude-Opus-4.6 為 29.2%，比較低但不是 0。</p>
+      </div>
+      <div class="card mini">
+        <h4>防禦也擋不完全</h4>
+        <p>在使用者指令加入安全提示後，GLM-4.7 的 ASR 從 97.3% 降到 48.3%，但權限提升與未授權寫入仍分別有 66% 與 77%。四種真實的技能掃描器平均只偵測出 61.5%，因為惡意功能被分散在輔助檔案和看似自然的文件裡。</p>
+      </div>
+      <div class="card mini">
+        <h4>作者自述的限制</h4>
+        <p>成功率是以「助手腳本有沒有被執行」來算，不代表每次都造成實際損害；而且只在技能已經被選中、載入之後才評估，沒有研究怎麼讓路由器選中惡意技能。實驗都在隔離的 Docker 中進行，並且不公開可直接重用的惡意負載。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare">
+    <div class="section-head from-bottom">
+      <h3>3. SkillJect 與本專題的比較</h3>
+    </div>
+    <div class="table-responsive from-bottom">
+      <table class="custom-table">
+        <thead>
+          <tr><th>面向</th><th>SkillJect</th><th>本專題</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>攻擊階段</td><td>單回合：載入技能後當場執行腳本（F5 → F3）</td><td>跨回合：先寫進記憶，下一回合才發作（F5 → F2 → F3）</td></tr>
+          <tr><td>注入的產生方式</td><td>GPT-3.5-Turbo 產生，依回饋<strong>閉環優化</strong>最多 5 輪</td><td>Attacker AI 依 5 種變異算子一次產生，<strong>不依結果加強</strong>，固定攻擊強度</td></tr>
+          <tr><td>負載</td><td>真實動作藏在 <code>.sh</code>／<code>.py</code> 輔助腳本</td><td>只有 <code>SKILL.md</code> 文字；測試標記 + mock 工具，完全去武器化</td></tr>
+          <tr><td>成功判定</td><td>執行軌跡中出現助手腳本的執行</td><td>F2、F3 oracle；「有效 F3」要求觸發標記只能來自記憶</td></tr>
+          <tr><td>目標 agent 與模型</td><td>Claude Code、OpenClaw；多個雲端前沿模型</td><td>OpenClaw；GPT-5.6-sol 與本機 7–8B 量化模型</td></tr>
+          <tr><td>防禦評估</td><td>提示層級防禦、4 種現成技能掃描器</td><td>靜態規則、Defender AI、前置 gate</td></tr>
+          <tr class="total-row"><td>攻擊成功率</td><td>平均約 80%</td><td>端到端最高 6/360（1.7%）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="from-bottom">兩邊的數字差很多，但不能直接比較：SkillJect 量的是「當場執行一支腳本」，本專題量的是「寫進記憶、換一個回合、使用者只問一般問題時仍然照做」，條件嚴格得多；SkillJect 還會依失敗原因反覆改寫注入，本專題刻意不這麼做。</p>
+  </section>
+
+  <section class="section" id="takeaways">
+    <div class="section-head from-bottom">
+      <h3>4. 讀完之後的收穫</h3>
+    </div>
+    <div class="card-row two from-bottom">
+      <div class="card mini">
+        <span class="badge badge-soft">互相印證</span>
+        <h4>明顯的注入對強模型無效</h4>
+        <p>SkillJect 的直接注入在所有模型上都是 0%；我們的 GPT-5.6-sol 在 strict 設定下也是 0/360。兩邊都顯示，攻擊能否成功很取決於注入「看起來合不合理」。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-soft">互相印證</span>
+        <h4>「必要步驟」與「權威」的包裝最有效</h4>
+        <p>SkillJect 把腳本包裝成「必須先執行的步驟」；我們的成功案例也全部來自 <code>authority_claim</code> 算子。兩者都是把注入偽裝成有權威、非做不可的指示。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-soft">互相印證</span>
+        <h4>靜態檢查不夠</h4>
+        <p>SkillJect 中的掃描器平均只偵測出 61.5%；我們的靜態規則在移除標記的 harder_v1 上 recall = 0。只靠關鍵字或表面特徵的檢查很容易被繞過。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-soft">互相印證</span>
+        <h4>記憶寫入是關鍵關卡</h4>
+        <p>OpenClaw 論文把 F2 視為攻擊的傳送帶，並建議驗證記憶回寫；我們的實驗發現瓶頸正是「把指令寫進記憶」，一旦寫入，回合 2 有 89% 照做。這讓我們的實驗結果有了架構層面的解釋。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-outline">本專題的定位</span>
+        <h4>補上跨回合與量測嚴謹性</h4>
+        <p>SkillJect 只測單回合，OpenClaw 論文則指出延遲觸發的評估還很缺乏。本專題的貢獻在於實際量測 F5 → F2 → F3，並檢查量測方式本身會不會造成假象（例如 Llama 的 34/60 實際上是 0/60）。</p>
+      </div>
+      <div class="card mini">
+        <span class="badge badge-outline">未來方向</span>
+        <h4>可以借鏡的地方</h4>
+        <p>SkillJect 的閉環回饋（區分「被忽略」與「被拒絕」）可以用來產生更難的 holdout 資料集，讓 Defender 在 baseline 不是 0 的情況下評估；OpenClaw 論文的建議則支持我們把防禦放在記憶寫入的時候。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="refs">
+    <div class="section-head from-bottom">
+      <h3>參考文獻</h3>
+    </div>
+    <ol class="custom-list from-bottom">
+      <li>OpenClaw in the Wild: Security Analysis of Autonomous Agents.</li>
+      <li>SkillJect: Effectively Automating Skill-Based Prompt Injection for Skill-Enabled Agents. 程式碼：<a href="https://github.com/jiaxiaojunQAQ/SkillJect">github.com/jiaxiaojunQAQ/SkillJect</a></li>
+    </ol>
+  </section>
+
+</main>
+
+<button class="scroll-top" aria-label="回到頂端">↑</button>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h5>關於本專題（組別代號：ZQ）</h5>
+      <p>林郁庭 &nbsp;|&nbsp; 元智大學 資訊管理學系</p>
+      <p>實習單位：前瞻資安科技實驗室 NextGen InfoSec Lab（NGIS Lab）</p>
+      <p>輔導老師：王仁甫</p>
+    </div>
+    <div>
+      <h5>聯絡資訊</h5>
+      <p>學校信箱：<a href="mailto:s1113104@mail.yzu.edu.tw">s1113104@mail.yzu.edu.tw</a></p>
+      <p>個人信箱：<a href="mailto:cadylinn0@gmail.com">cadylinn0@gmail.com</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 林郁庭 &nbsp;|&nbsp; 元智大學資訊管理學系 第三十一屆專業實習／專題製作報告</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
